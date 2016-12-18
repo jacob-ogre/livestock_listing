@@ -1,0 +1,8 @@
+.main-container {
+  max-width: 1200px !important;
+  margin-left: 10px !important;
+}
+
+#section-missing-species td {
+  font-size: larger;
+}

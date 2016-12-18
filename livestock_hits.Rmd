@@ -1,0 +1,120 @@
+---
+title: "Livestock assessment"
+author: "Jacob Malcom, DOW"
+date: "12/17/2016"
+output: 
+  html_document:
+    theme: yeti
+    css: styles.css
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(DT)
+library(shiny)
+knitr::opts_chunk$set(echo = TRUE)
+load("live_graze.rda")
+load("missing_spp.rda")
+```
+
+## Summary
+
+The following table is a summary of full-text searches of >3,500 
+_Federal Register_ documents for the terms:
+
+- 'livestock';
+- 'sheep';
+- 'cattle';
+- 'trampl* (to match 'trample,' 'trampling,' and other related words);
+- 'graz*' (e.g., grazing and graze);
+- 'sediment' (e.g., sedimentation); or
+- 'water quality'.
+
+After searching all documents, the document set was first filtered to exlude 
+those with 'propos*' (e.g., proposed or proposal) or 'Notice of Review' in the 
+title. The next filter included  those docs with 'endangered,' 'threatened,' 
+'end,' or 'thr.' in the title.  Unfortunately, you'll see that
+some number of docs are for critical habitat designation (final rules). Because
+a significant number of CH designations were done concurrent with listing, 
+filtering out docs whose title includes 'critical habitat' increases the false
+negative rate. (A more complex set of searches might have a very high return,
+but I can't get to it at the moment.) In other words, the results are not perfect,
+but are a good start.
+
+## Coverage
+
+This document set covers 1,598 domestic listed species...or at least the documents
+are linked on 1,598 species' pages on [ECOS](http://ecos.fws.gov). There are 
+currently 1,611 listed species, so at least 13 species may lack final listing 
+rules in this document set. Those species are listed at the bottom of the page, 
+below the main table, to help you track down missing documents. Could the 
+number be more or less than this? It probably it, but I hope this is a decent
+starting point.
+
+## Usage
+
+The following are my thoughts on how to work through this information, but 
+definitely feel free to adjust as you see fit! I would start by sorting the
+table by `n_hit`, from high to low, to get the docs that discuss cattle-
+related terms most first. (That is, I'm assuming that more hits of the terms
+means that the threat is more extensively discussed.)
+
+Next, I would work down the table and look at the first column, `Title` to see 
+if the title suggests it really is a final listing rule. Some are not (see above)!
+To evaluate the documents individually, you can click the link in either the 
+second column (`Link`) _or_ go to the original FWS version of the document using
+the link in the far-right column. (Note that the FWS-provided version may not
+have embedded text in the PDF, and may therefore not be searchable.) 
+After the first few documents - when it's pretty clear that livestock / cattle /
+and other effects are being discussed, comparing the number of hits to each search
+pattern will probably provide some helpful hints.
+
+_Note_: Every column can be sorted (arrows) or searched (boxes). 
+
+```{r echo = FALSE}
+live_graze$Link <- paste0("<a href='", 
+                          live_graze$Link, 
+                          "' target='_blank'>Link</a>")
+live_graze$Orig_URL <- paste0("<a href='", 
+                              live_graze$Orig_URL, 
+                              "' target='_blank'>FWS Link</a>")
+live_graze$Date <- as.Date(live_graze$Date)
+DT::renderDataTable(
+  live_graze,
+  filter = "top",
+  extensions = "Buttons",
+  options = list(searching = "true",
+                 dom = "Bfrtip",
+                 pageLength = 25,
+                 buttons = c('copy', 'csv', 'excel'),
+                 autoWidth = FALSE), 
+  escape = FALSE
+)
+```
+
+## Missing species
+
+These species are not associated with any of the documents in the table above:
+
+```{r echo = FALSE}
+DT::renderDataTable(
+  missing_spp,
+  options = list(searching = "true",
+                 dom = "Bfrtip",
+                 pageLength = 50,
+                 buttons = c('copy', 'csv', 'excel'),
+                 autoWidth = FALSE), 
+  escape = FALSE
+)
+```
+
+```{r echo = FALSE}
+# tmp <- unlist(lapply(live_graze$Species, paste, collapse = "; "))
+# live_graze$Species <- tmp
+# readr::write_tsv(live_graze, path = "livestock_queries.tsv")
+```
+
+<br>
+<hr>
+<br>
